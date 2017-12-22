@@ -11,7 +11,7 @@ spring:
     application:
         name: jhipster-registry
     profiles:
-        active: dev,native
+        active: dev
     cloud:
         config:
             server:
