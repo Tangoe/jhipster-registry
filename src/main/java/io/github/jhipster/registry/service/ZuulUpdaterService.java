@@ -12,7 +12,12 @@ import org.springframework.cloud.netflix.zuul.filters.ZuulProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,8 +57,9 @@ public class ZuulUpdaterService {
                 if(!instanceInfos.getStatus().equals(InstanceInfo.InstanceStatus.UP) &&
                     !instanceInfos.getStatus().equals(InstanceInfo.InstanceStatus.STARTING)) continue;
                 String instanceId = instanceInfos.getId();
-                String url = instanceInfos.getHomePageUrl();
-                log.debug("Checking instance {} - {} ", instanceId, url);
+                //String url = getRegistryServicesUrl(instanceInfos);
+        			String url = instanceInfos.getHomePageUrl();
+        			log.debug("Checking instance {} - {} ", instanceId, url);
 
                 ZuulRouteDTO route = new ZuulRouteDTO(instanceId,
                     application.getName().toLowerCase() + "/" + instanceId + "/**",
@@ -95,4 +101,41 @@ public class ZuulUpdaterService {
             this.publisher.publishEvent(new RoutesRefreshedEvent(routeLocator));
         }
     }
+    
+    /*
+     * HACK ALERT
+     * 
+     * JHipster uses Zuul routing to route various registry service calls, made directly from
+     * the UI, to the intended backend microservice. It is assumed there is only one route
+     * to the microservice for all registry service call.
+     * 
+     * However, this is not the case if the management services are on a different port than
+     * the microservice's service port. 
+     * 
+     * The Normandy example of this is the Intelligent Router. Calls made to the microservice's server
+     * endpoint are intended to be proxied to the application under management. Also, because the
+     * Intelligent Router is on the edge accepting Web traffic, we don't want those resources exposed.
+     * So, it's a reasonable requirement to put management APIs on a separate port.
+     * 
+     * So, if the management port differs from the server port, we'll return a base URL to the management
+     * endpoint, otherwise we'll return Eureka's home page URL.
+     * 
+     */
+    private String getRegistryServicesUrl(InstanceInfo instanceInfos) {
+    		String url = instanceInfos.getHomePageUrl();
+    		int port = instanceInfos.getPort();
+    		String managementPort = instanceInfos.getMetadata().get("management.port");
+    		if (managementPort != null && port != Integer.valueOf(managementPort)) {
+    			UriComponents c = UriComponentsBuilder.fromHttpUrl(url).build();
+    			try {
+					URL u = new URL(c.getScheme(), c.getHost(), Integer.valueOf(managementPort),c.getPath());
+					url = u.toExternalForm();
+				} catch (NumberFormatException | MalformedURLException e) {
+				}
+    		}
+    		return url;
+    }
+    
+    
+    
 }
