@@ -3,6 +3,11 @@
 # In prod profile, properties will be overwriten by the ones defined in bootstrap-prod.yml
 # ===================================================================
 
+# The external configuration server host can be overridden to set the uri of the git repo that
+# contains the configuration.  This allows us to set a different location for production, qa, etc.
+# -Dnormandy_git_uri=https://bitbucket.org/tangoedevteam/normandy-test-config-jhipster.git
+normandy_git_uri: https://bitbucket.org/tangoedevteam/normandy-test-config-jhipster.git
+
 jhipster:
     registry:
         password: admin
@@ -16,16 +21,8 @@ spring:
         config:
             server:
                 git:
-                    uri: https://bitbucket.org/tangoedevteam/normandy-test-config-jhipster.git
+                    uri: ${normandy_git_uri}
                     searchPaths: configuration
-                    proxy:
-                            http:
-                                host: 10.2.6.87
-                                port: 8080
-                            https:
-                                host: 10.2.6.87
-                                port: 8080
-
                 native:
                     search-locations: file:C:\code\normandy-workspace\normandy-test-config-jhipster\configuration
                 prefix: /config
