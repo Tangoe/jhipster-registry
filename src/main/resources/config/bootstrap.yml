@@ -18,6 +18,14 @@ spring:
                 git:
                     uri: https://bitbucket.org/tangoedevteam/normandy-test-config-jhipster.git
                     searchPaths: configuration
+                    proxy:
+                            http:
+                                host: 10.2.6.87
+                                port: 8080
+                            https:
+                                host: 10.2.6.87
+                                port: 8080
+
                 native:
                     search-locations: file:C:\code\normandy-workspace\normandy-test-config-jhipster\configuration
                 prefix: /config
